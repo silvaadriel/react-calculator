@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Button from '../Button';
+import Display from '../Display';
 
 import './styles.sass';
 
@@ -7,6 +8,7 @@ export default class Calculator extends Component {
   render() {
     return (
       <div className="calculator">
+        <Display value={1000} />
         <Button btnLabel="AC" />
         <Button btnLabel="/" />
         <Button btnLabel="7" />
