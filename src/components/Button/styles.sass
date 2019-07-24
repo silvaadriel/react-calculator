@@ -1,4 +1,7 @@
 $bgButton: #f0f0f0
+$bgActiveButton: #ccc
+$bgOperationButton: #fa8231
+$bgActiveOperationButton: #fa8231cc
 $borderButton: solid 1px #888
 
 .button
@@ -8,3 +11,19 @@ $borderButton: solid 1px #888
   border-right: $borderButton
   border-bottom: $borderButton
   outline: none
+
+.button:active
+  background-color: $bgActiveButton
+
+.button.double
+  grid-column: span 2
+
+.button.triple
+  grid-column: span 3
+
+.button.operation
+  background-color: $bgOperationButton
+  color: white
+
+.button.operation:active
+  background-color: $bgActiveOperationButton
