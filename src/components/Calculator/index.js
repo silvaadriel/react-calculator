@@ -8,7 +8,7 @@ const initialState = {
   displayValue: '0',
   clearDisplay: false,
   operation: null,
-  values: [0, 0],
+  valuesToCalculate: [0, 0],
   currentIndex: 0,
 };
 
@@ -17,67 +17,78 @@ export default class Calculator extends Component {
 
   clearMemory = () => this.setState({ ...initialState });
 
+  setValueToCalculate = (value, clearDisplay = false) => {
+    const { currentIndex, valuesToCalculate } = this.state;
+    const newValue = parseFloat(value);
+    const newValuesToCalculate = [...valuesToCalculate];
+
+    newValuesToCalculate[currentIndex] = clearDisplay ? 0 : newValue;
+
+    this.setState({ valuesToCalculate: newValuesToCalculate });
+  };
+
+  removeLastCharacter = string => string.substr(0, string.length - 1);
+
   backspace = () => {
-    const newDisplayValue = this.state.displayValue.substr(
-      0,
-      this.state.displayValue.length - 1
-    );
+    const { displayValue } = this.state;
+    const newDisplayValue = this.removeLastCharacter(displayValue);
     const clearDisplay = newDisplayValue === '';
 
     this.setState({ displayValue: clearDisplay ? '0' : newDisplayValue });
 
-    const index = this.state.currentIndex;
-    const newValue = parseFloat(newDisplayValue);
-    const values = [...this.state.values];
-    values[index] = clearDisplay ? 0 : newValue;
-    this.setState({ values });
+    this.setValueToCalculate(newDisplayValue, clearDisplay);
+  };
+
+  calculateValues = () => {
+    const { operation, valuesToCalculate } = this.state;
+
+    const newValuesToCalculate = [...valuesToCalculate];
+    try {
+      newValuesToCalculate[0] = eval(
+        `${newValuesToCalculate[0]} ${operation} ${newValuesToCalculate[1]}`
+      );
+    } catch (e) {
+      newValuesToCalculate[0] = valuesToCalculate[0];
+    }
+
+    newValuesToCalculate[1] = 0;
+
+    return newValuesToCalculate;
   };
 
   setOperation = operation => {
-    if (this.state.current === 0) {
+    const { currentIndex } = this.state;
+
+    if (currentIndex === 0) {
       this.setState({ operation, currentIndex: 1, clearDisplay: true });
     } else {
       const equals = operation === '=';
-      const currentOperation = this.state.operation;
 
-      const values = [...this.state.values];
-      try {
-        values[0] = eval(`${values[0]} ${currentOperation} ${values[1]}`);
-      } catch (e) {
-        values[0] = this.state.values[0];
-      }
-
-      values[1] = 0;
+      const result = this.calculateValues();
 
       this.setState({
-        displayValue: values[0].toString(),
+        displayValue: result[0].toString(),
         operation: equals ? null : operation,
         currentIndex: equals ? 0 : 1,
         clearDisplay: !equals,
-        values,
+        valuesToCalculate: result,
       });
     }
   };
 
   addDigit = digit => {
-    if (digit === '.' && this.state.displayValue.includes('.')) {
-      return;
-    }
+    const { displayValue, clearDisplay } = this.state;
 
-    const clearDisplay =
-      this.state.displayValue === '0' || this.state.clearDisplay;
-    const currentValue = clearDisplay ? '' : this.state.displayValue;
-    const displayValue = currentValue + digit;
-    this.setState({ displayValue, clearDisplay: false });
+    if (digit === '.' && displayValue.includes('.')) return;
 
-    if (digit !== '.') {
-      const index = this.state.currentIndex;
-      const newValue = parseFloat(displayValue);
-      const values = [...this.state.values];
-      values[index] = newValue;
-      this.setState({ values });
-      console.log(values);
-    }
+    const newClearDisplay = displayValue === '0' || clearDisplay;
+
+    const currentValue = newClearDisplay ? '' : displayValue;
+    const newDisplayValue = currentValue + digit;
+
+    this.setState({ displayValue: newDisplayValue, clearDisplay: false });
+
+    if (digit !== '.') this.setValueToCalculate(newDisplayValue);
   };
 
   render() {
